@@ -1,6 +1,6 @@
 import sys
 
-BACKENDS = {
+AVAILABLE_BACKENDS = {
     'bzr': 'bzr',
     'git': 'git',
     'hg': 'hg',
@@ -8,7 +8,7 @@ BACKENDS = {
 }
 
 def get_backend(backend):
-    if backend in BACKENDS:
+    if backend in AVAILABLE_BACKENDS:
         path = 'pyvcs.backends.%s' % backend
     else:
         path = backend
