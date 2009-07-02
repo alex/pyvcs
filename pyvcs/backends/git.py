@@ -98,7 +98,7 @@ class Repository(BaseRepository):
             if commit in history:
                 continue
             history.add(commit)
-            pending_commits += commit.parents
+            pending_commits.extend(commit.parents)
         commits = filter(lambda o: datetime.fromtimestamp(o.commit_time) >= since, history)
         return sorted(map(lambda o: self.get_commit_by_id(o.id), commits), key=attrgetter('time'), reverse=True)
 
