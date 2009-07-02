@@ -86,7 +86,7 @@ class Repository(BaseRepository):
         raise NotImplementedError
 
     def list_directory(self, path, revision=None):
-        commit = self._get_commit(revision)
+        commit = self._get_commit(revision or self._repo.head())
         tree = self._repo.tree(commit.tree)
         path = path.split(os.path.sep)
         while path:
@@ -104,7 +104,7 @@ class Repository(BaseRepository):
         return files, folders
 
     def file_contents(self, path, revision=None):
-        commit = self._get_commit(revision)
+        commit = self._get_commit(revision or self._repo.head())
         tree = self._repo.tree(commit.tree)
         path = path.split(os.path.sep)
         path, filename = path[:-1], path[-1]
