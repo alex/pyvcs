@@ -16,6 +16,11 @@ class HGTest(unittest.TestCase):
         self.assert_(commit.author.startswith('mpm'))
         self.assertEqual(commit.time, datetime(2005, 5, 10, 4, 34, 57))
         self.assert_(commit.message.startswith('Fix recursion depth'))
+        
+    def test_list_directory(self):
+        files, folders = self.repo.list_directory('contrib/', 450)
+        self.assertEqual(len(files), 3)
+        self.assertEqual(folders, ['git-viz'])
 
 if __name__ == '__main__':
     unittest.main()
