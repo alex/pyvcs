@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import itemgetter
 import os
 
 from dulwich.repo import Repo
@@ -7,6 +8,19 @@ from dulwich import objects
 from pyvcs.commit import Commit
 from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist, FolderDoesNotExist
 from pyvcs.repository import BaseRepository
+
+def get_differing_files(repo, past, current):
+    iterator = zip(
+        sorted(past.entries(), key=itemgetter(1)),
+        sorted(current.entries(), key=itemgetter(1))
+    )
+    for (past_mode, past_name, past_sha), (current_mode, current_name, current_sha) in iterator:
+        if past_name == current_name and past_sha != current_sha:
+            if isinstance(repo.get_object(past_sha), objects.Tree):
+                for name in get_differing_files(repo, repo.get_object(past_sha), repo.get_object(current_sha)):
+                    yield os.path.join(current_name, name)
+            else:
+                yield current_name
 
 class Repository(BaseRepository):
     def __init__(self, *args, **kwargs):
@@ -20,12 +34,20 @@ class Repository(BaseRepository):
         except Exception, e:
             raise CommitDoesNotExist("%s is not a commit" % commit_id)
 
+    def _get_obj(self, sha):
+        return self._repo.get_object(sha)
+
+    def _diff(self, commit_id1, commit_id2):
+        return list(get_differing_files(
+            self._repo,
+            self._get_obj(self._get_obj(commit_id1).tree),
+            self._get_obj(self._get_obj(commit_id2).tree),
+        ))
 
     def get_commit_by_id(self, commit_id):
         commit = self._get_commit(commit_id)
         return Commit(commit.committer,
-            datetime.fromtimestamp(commit.commit_time), commit.message,
-            commit.as_pretty_string())
+            datetime.fromtimestamp(commit.commit_time), commit.message)
 
     def get_recent_commits(self, since=None):
         raise NotImplementedError
