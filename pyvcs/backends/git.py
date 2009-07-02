@@ -69,7 +69,7 @@ class Repository(BaseRepository):
     def _get_obj(self, sha):
         return self._repo.get_object(sha)
 
-    def _diff(self, commit_id1, commit_id2):
+    def _diff_files(self, commit_id1, commit_id2):
         return sorted(get_differing_files(
             self._repo,
             self._get_obj(self._get_obj(commit_id1).tree),
@@ -78,8 +78,9 @@ class Repository(BaseRepository):
 
     def get_commit_by_id(self, commit_id):
         commit = self._get_commit(commit_id)
+        files = self._diff_files(commit.id, commit.parents[0])
         return Commit(commit.committer,
-            datetime.fromtimestamp(commit.commit_time), commit.message)
+            datetime.fromtimestamp(commit.commit_time), commit.message, files, '')
 
     def get_recent_commits(self, since=None):
         raise NotImplementedError

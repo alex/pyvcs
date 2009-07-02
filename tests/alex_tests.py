@@ -10,11 +10,12 @@ class GitTest(unittest.TestCase):
         git = get_backend('git')
         self.repo = git.Repository('/home/alex/django_src/')
 
-#    def test_commits(self):
-#        commit = self.repo.get_commit_by_id('c3699190186561d5c216b2a77ecbfc487d42a734')
-#        self.assert_(commit.author.startswith('ubernostrum'))
-#        self.assertEqual(commit.time, datetime(2009, 6, 30, 13, 40, 29))
-#        self.assert_(commit.message.startswith('Fixed #11357: contrib.admindocs'))
+    def test_commits(self):
+        commit = self.repo.get_commit_by_id('c3699190186561d5c216b2a77ecbfc487d42a734')
+        self.assert_(commit.author.startswith('ubernostrum'))
+        self.assertEqual(commit.time, datetime(2009, 6, 30, 13, 40, 29))
+        self.assert_(commit.message.startswith('Fixed #11357: contrib.admindocs'))
+        self.assertEqual(commit.files, ['django/contrib/admindocs/views.py'])
 
     def test_list_directory(self):
         files, folders = self.repo.list_directory('tests/', 'c3699190186561d5c216b2a77ecbfc487d42a734')
@@ -30,7 +31,7 @@ class GitTest(unittest.TestCase):
         ])
 
     def test_diffs(self):
-        self.assertEqual(self.repo._diff(
+        self.assertEqual(self.repo._diff_files(
             '35fa967a05d54d5159eb1c620544e050114ab0ed',
             'c3699190186561d5c216b2a77ecbfc487d42a734'
         ), ['django/contrib/admindocs/views.py'])
@@ -70,7 +71,7 @@ class GitTest(unittest.TestCase):
             'tests/regressiontests/aggregation_regress/__init__.py',
             'tests/regressiontests/aggregation_regress/models.py'
         ]
-        self.assertEqual(set(self.repo._diff(
+        self.assertEqual(set(self.repo._diff_files(
             '842e1d0dabfe057c1eeb4b6b83de0b2eb7dcb9e6',
             'a6195888efe947f7b23c61248f43f4cab3c5200c',
         )), set(files))

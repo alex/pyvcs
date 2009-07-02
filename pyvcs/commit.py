@@ -7,4 +7,5 @@ class Commit(object):
         self.author = author
         self.time = time
         self.message = message
+        self.files = files
         self.diff = diff
