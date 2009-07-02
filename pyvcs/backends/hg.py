@@ -5,8 +5,8 @@ from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
 
 from pyvcs.commit import Commit
-from pyvcs.repository import BaseRepository
 from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist
+from pyvcs.repository import BaseRepository
 
 def get_diff(chgset):
     diff = []
@@ -17,7 +17,7 @@ def get_diff(chgset):
         # FIXME: This should return diff + context, not entire files
         differ = Differ()
         single_diff = list(differ.compare(fctx.data().splitlines(1), parent.data().splitlines(1)))
-        diff.append(''.join(single_diff)) 
+        diff.append(''.join(single_diff))
     return diff
 
 class Repository(BaseRepository):
