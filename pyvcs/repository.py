@@ -14,3 +14,24 @@ class BaseRepository(object):
         Returns a commit by it's id (nature of the ID is VCS dependent).
         """
         raise NotImplementedError
+
+    def get_recent_commits(self, since=None):
+        """
+        Returns all commits since since.  If since is None returns all commits
+        from the last 5 days.
+        """
+        raise NotImplementedError
+
+    def list_directory(self, revision=None):
+        """
+        Returns a list of files in a directory (list of strings) at a given
+        revision, or HEAD if revision is None.
+        """
+        raise NotImplementedError
+
+    def file_contents(self, revision=None):
+        """
+        Returns the contents of a file as a string at a given revision, or
+        HEAD if revision is None.
+        """
+        raise NotImplementedError
