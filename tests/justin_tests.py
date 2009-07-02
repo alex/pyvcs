@@ -21,6 +21,10 @@ class HGTest(unittest.TestCase):
         files, folders = self.repo.list_directory('contrib/', 450)
         self.assertEqual(len(files), 3)
         self.assertEqual(folders, ['git-viz'])
+        
+    def test_file_contents(self):
+        contents = self.repo.file_contents('tests/test-up-local-change', 450)
+        self.assertEqual(contents.splitlines()[:1], ['#!/bin/bash'])
 
 if __name__ == '__main__':
     unittest.main()

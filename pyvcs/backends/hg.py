@@ -6,7 +6,7 @@ from mercurial.localrepo import localrepository as hg_repo
 
 from pyvcs.commit import Commit
 from pyvcs.repository import BaseRepository
-from pyvcs.exceptions import CommitDoesNotExist
+from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist
 
 def get_diff(chgset):
     diff = []
@@ -73,4 +73,9 @@ class Repository(BaseRepository):
         Returns the contents of a file as a string at a given revision, or
         HEAD if revision is None.
         """
-        raise NotImplementedError
+        chgctx = self.repo.changectx(revision)
+        try:
+            fctx = chgctx.filectx(path)
+        except KeyError:
+            raise FileDoesNotExist
+        return fctx.data()
