@@ -3,6 +3,7 @@ from datetime import datetime
 import unittest
 
 from pyvcs.backends import get_backend
+from pyvcs.exceptions import FileDoesNotExist, FolderDoesNotExist
 
 class GitTest(unittest.TestCase):
     def setUp(self):
@@ -19,6 +20,14 @@ class GitTest(unittest.TestCase):
         files, folders = self.repo.list_directory('tests/', 'c3699190186561d5c216b2a77ecbfc487d42a734')
         self.assertEqual(files, ['runtests.py', 'urls.py'])
         self.assertEqual(folders, ['modeltests', 'regressiontests', 'templates'])
+
+    def test_file_contents(self):
+        contents = self.repo.file_contents('django/db/models/fields/related.py',
+            'c3699190186561d5c216b2a77ecbfc487d42a734')
+        self.assertEqual(contents.splitlines()[:2], [
+            'from django.db import connection, transaction',
+            'from django.db.backends import util'
+        ])
 
 
 if __name__ == '__main__':
