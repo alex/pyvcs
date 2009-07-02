@@ -22,14 +22,14 @@ class BaseRepository(object):
         """
         raise NotImplementedError
 
-    def list_directory(self, revision=None):
+    def list_directory(self, path, revision=None):
         """
-        Returns a list of files in a directory (list of strings) at a given
-        revision, or HEAD if revision is None.
+        Returns a tuple of lists of files and folders in a given directory at a
+        given revision, or HEAD if revision is None.
         """
         raise NotImplementedError
 
-    def file_contents(self, revision=None):
+    def file_contents(self, path, revision=None):
         """
         Returns the contents of a file as a string at a given revision, or
         HEAD if revision is None.

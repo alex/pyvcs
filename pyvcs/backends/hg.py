@@ -1,11 +1,12 @@
-from mercurial import ui
-from mercurial.localrepo import localrepository as hg_repo
-from pyvcs import repository
-from pyvcs.commit import Commit
-from pyvcs.exceptions import CommitDoesNotExist
 from datetime import datetime
 from difflib import ndiff
 
+from mercurial import ui
+from mercurial.localrepo import localrepository as hg_repo
+
+from pyvcs.repository import BaseRepository
+from pyvcs.commit import Commit
+from pyvcs.exceptions import CommitDoesNotExist
 
 def get_diff(chgset):
     diff = []
@@ -17,7 +18,6 @@ def get_diff(chgset):
         diff.append(ndiff(fctx.data().splitlines(1), parent.data().splitlines(1)))
     return diff
         
-
 class Repository(BaseRepository):
     def __init__(self, path, **kwargs):
         """
