@@ -29,6 +29,7 @@ class GitTest(unittest.TestCase):
             'from django.db import connection, transaction',
             'from django.db.backends import util'
         ])
+        self.assertRaises(FileDoesNotExist, self.repo.file_contents, 'django/db/models/jesus.py')
 
     def test_diffs(self):
         self.assertEqual(self.repo._diff_files(
