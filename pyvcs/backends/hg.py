@@ -1,10 +1,12 @@
-from mercurial import ui
-from mercurial.localrepo import localrepository as hg_repo
-from pyvcs import repository
-from pyvcs.commit import Commit
-from pyvcs.exceptions import CommitDoesNotExist
 from datetime import datetime
 from difflib import Differ
+
+from mercurial import ui
+from mercurial.localrepo import localrepository as hg_repo
+
+from pyvcs.repository import BaseRepository
+from pyvcs.commit import Commit
+from pyvcs.exceptions import CommitDoesNotExist
 
 class Repository(BaseRepository):
     def __init__(self, path, **kwargs):
@@ -22,7 +24,7 @@ class Repository(BaseRepository):
         """
         changeset = self.repo.changectx(commit_id).changeset()
         commit = Commit(changeset.user(),
-                            datetime.fromtimestamp(changeset.date()[0]), 
+                            datetime.fromtimestamp(changeset.date()[0]),
                             changeset.description(),
                             diff)
         return commit
