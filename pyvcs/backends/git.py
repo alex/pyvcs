@@ -9,12 +9,36 @@ from pyvcs.commit import Commit
 from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist, FolderDoesNotExist
 from pyvcs.repository import BaseRepository
 
+
 def get_differing_files(repo, past, current):
     iterator = zip(
         sorted(past.entries(), key=itemgetter(1)),
-        sorted(current.entries(), key=itemgetter(1))
+        sorted(current.entries(), key=itemgetter(1)),
     )
-    for (past_mode, past_name, past_sha), (current_mode, current_name, current_sha) in iterator:
+    set1 = set([o[0][1] for o in iterator])
+    set2 = set([o[1][1] for o in iterator])
+    iter1 = iter([o[0] for o in iterator])
+    iter2 = iter([o[1] for o in iterator])
+    while True:
+        past_mode, past_name, past_sha = iter1.next()
+        current_mode, current_name, current_sha = iter2.next()
+        if past_name != current_name:
+            if past_name in set2:
+                while past_name != current_name:
+                    if isinstance(repo.get_object(current_sha), objects.Tree):
+                        for mode, name, sha in repo.get_object(current_sha).entries():
+                            yield os.path.join(current_name, name)
+                    else:
+                        yield current_name
+                    current_mode, current_name, current_sha = iter2.next()
+            else:
+                while past_name != current_name:
+                    if isinstance(repo.get_object(past_sha), objects.Tree).entries():
+                        for mode, name, sha in repo.get_object(past_sha):
+                            yield os.path.join(past_name, name)
+                    else:
+                        yield past_name
+                    past_mode, past_name, past_sha = iter1.next()
         if past_name == current_name and past_sha != current_sha:
             if isinstance(repo.get_object(past_sha), objects.Tree):
                 for name in get_differing_files(repo, repo.get_object(past_sha), repo.get_object(current_sha)):
