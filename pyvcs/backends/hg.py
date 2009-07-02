@@ -1,5 +1,5 @@
 from datetime import datetime
-from difflib import ndiff
+from difflib import Differ
 
 from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
@@ -15,7 +15,9 @@ def get_diff(chgset):
         # FIXME: Fix this to handle multiple parents
         parent = fctx.parents()[0]
         # FIXME: This should return diff + context, not entire files
-        diff.append(ndiff(fctx.data().splitlines(1), parent.data().splitlines(1)))
+        differ = Differ()
+        single_diff = list(differ.compare(fctx.data().splitlines(1), parent.data().splitlines(1)))
+        diff.append(''.join(single_diff)) 
     return diff
 
 class Repository(BaseRepository):
@@ -32,10 +34,11 @@ class Repository(BaseRepository):
         """
         Returns a commit by it's id (nature of the ID is VCS dependent).
         """
-        changeset = self.repo.changectx(commit_id).changeset()
+        changeset = self.repo.changectx(commit_id)
         commit = Commit(changeset.user(),
                         datetime.fromtimestamp(changeset.date()[0]),
                         changeset.description(),
+                        changeset.files(),
                         "\n".join(get_diff(changeset)))
         return commit
 
@@ -46,14 +49,20 @@ class Repository(BaseRepository):
         """
         raise NotImplementedError
 
-    def list_directory(self, revision=None):
+    def list_directory(self, path, revision=None):
         """
         Returns a list of files in a directory (list of strings) at a given
         revision, or HEAD if revision is None.
         """
-        raise NotImplementedError
+        chgctx = self.repo.changectx(revision)
+        file_list = []
+        for file, node in chgctx.manifest().items():
+            if not file.startswith(path):
+                continue
+            file_list.append(file)
+        return file_list
 
-    def file_contents(self, revision=None):
+    def file_contents(self, path, revision=None):
         """
         Returns the contents of a file as a string at a given revision, or
         HEAD if revision is None.
