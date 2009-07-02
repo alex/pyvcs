@@ -1,0 +1,9 @@
+Stuff ToDo/Ideas
+================
+
+Very lightweight abstraction over VCS.  Basic features are.
+
+ * get recent commits
+ * get commit data (author, time, commit msg, diff)
+ * get commit by id
+ * get repo state at a given revision, file status and contents.
