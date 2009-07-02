@@ -1,0 +1,2 @@
+class CommitDoesNotExist(Exception):
+    pass
