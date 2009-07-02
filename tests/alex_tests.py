@@ -17,6 +17,9 @@ class GitTest(unittest.TestCase):
         self.assert_(commit.message.startswith('Fixed #11357: contrib.admindocs'))
         self.assertEqual(commit.files, ['django/contrib/admindocs/views.py'])
 
+    def test_recent_commits(self):
+        results = self.repo.get_recent_commits()
+
     def test_list_directory(self):
         files, folders = self.repo.list_directory('tests/', 'c3699190186561d5c216b2a77ecbfc487d42a734')
         self.assertEqual(files, ['runtests.py', 'urls.py'])

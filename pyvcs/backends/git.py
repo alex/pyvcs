@@ -1,5 +1,5 @@
-from datetime import datetime
-from operator import itemgetter
+from datetime import datetime, timedelta
+from operator import itemgetter, attrgetter
 import os
 
 from dulwich.repo import Repo
@@ -80,12 +80,27 @@ class Repository(BaseRepository):
     def get_commit_by_id(self, commit_id):
         commit = self._get_commit(commit_id)
         files = self._diff_files(commit.id, commit.parents[0])
-        return Commit(commit.committer,
+        return Commit(commit.id, commit.committer,
             datetime.fromtimestamp(commit.commit_time), commit.message, files,
             generate_unified_diff(self, files, commit.parents[0], commit.id))
 
     def get_recent_commits(self, since=None):
-        raise NotImplementedError
+        if since is None:
+            since = datetime.now() - timedelta(days=5)
+        pending_commits = [self._repo.head()]
+        history = set()
+        while pending_commits:
+            head = pending_commits.pop(0)
+            try:
+                commit = self._repo.commit(head)
+            except KeyError:
+                raise CommitDoesNotExist
+            if commit in history:
+                continue
+            history.add(commit)
+            pending_commits += commit.parents
+        commits = filter(lambda o: datetime.fromtimestamp(o.commit_time) >= since, history)
+        return sorted(map(lambda o: self.get_commit_by_id(o.id), commits), key=attrgetter('time'), reverse=True)
 
     def list_directory(self, path, revision=None):
         commit = self._get_commit(revision or self._repo.head())
