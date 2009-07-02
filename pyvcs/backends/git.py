@@ -8,6 +8,7 @@ from dulwich import objects
 from pyvcs.commit import Commit
 from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist, FolderDoesNotExist
 from pyvcs.repository import BaseRepository
+from pyvcs.utils import generate_unified_diff
 
 
 def traverse_tree(repo, tree):
@@ -80,7 +81,8 @@ class Repository(BaseRepository):
         commit = self._get_commit(commit_id)
         files = self._diff_files(commit.id, commit.parents[0])
         return Commit(commit.committer,
-            datetime.fromtimestamp(commit.commit_time), commit.message, files, '')
+            datetime.fromtimestamp(commit.commit_time), commit.message, files,
+            generate_unified_diff(self, files, commit.parents[0], commit.id))
 
     def get_recent_commits(self, since=None):
         raise NotImplementedError
