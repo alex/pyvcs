@@ -4,8 +4,8 @@ from difflib import ndiff
 from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
 
-from pyvcs.repository import BaseRepository
 from pyvcs.commit import Commit
+from pyvcs.repository import BaseRepository
 from pyvcs.exceptions import CommitDoesNotExist
 
 def get_diff(chgset):
@@ -17,7 +17,7 @@ def get_diff(chgset):
         # FIXME: This should return diff + context, not entire files
         diff.append(ndiff(fctx.data().splitlines(1), parent.data().splitlines(1)))
     return diff
-        
+
 class Repository(BaseRepository):
     def __init__(self, path, **kwargs):
         """
@@ -34,7 +34,7 @@ class Repository(BaseRepository):
         """
         changeset = self.repo.changectx(commit_id).changeset()
         commit = Commit(changeset.user(),
-                        datetime.fromtimestamp(changeset.date()[0]), 
+                        datetime.fromtimestamp(changeset.date()[0]),
                         changeset.description(),
                         "\n".join(get_diff(changeset)))
         return commit
