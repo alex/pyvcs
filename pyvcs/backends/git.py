@@ -10,41 +10,49 @@ from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist, FolderDoesNot
 from pyvcs.repository import BaseRepository
 
 
+def traverse_tree(repo, tree):
+    for mode, name, sha in tree.entries():
+        if isinstance(repo.get_object(sha), objects.Tree):
+            for item in traverse_tree(repo, repo.get_object(sha)):
+                yield os.path.join(name, item)
+        else:
+            yield name
+
 def get_differing_files(repo, past, current):
-    iterator = zip(
-        sorted(past.entries(), key=itemgetter(1)),
-        sorted(current.entries(), key=itemgetter(1)),
-    )
-    set1 = set([o[0][1] for o in iterator])
-    set2 = set([o[1][1] for o in iterator])
-    iter1 = iter([o[0] for o in iterator])
-    iter2 = iter([o[1] for o in iterator])
-    while True:
-        past_mode, past_name, past_sha = iter1.next()
-        current_mode, current_name, current_sha = iter2.next()
-        if past_name != current_name:
-            if past_name in set2:
-                while past_name != current_name:
-                    if isinstance(repo.get_object(current_sha), objects.Tree):
-                        for mode, name, sha in repo.get_object(current_sha).entries():
-                            yield os.path.join(current_name, name)
-                    else:
-                        yield current_name
-                    current_mode, current_name, current_sha = iter2.next()
-            else:
-                while past_name != current_name:
-                    if isinstance(repo.get_object(past_sha), objects.Tree).entries():
-                        for mode, name, sha in repo.get_object(past_sha):
-                            yield os.path.join(past_name, name)
-                    else:
-                        yield past_name
-                    past_mode, past_name, past_sha = iter1.next()
-        if past_name == current_name and past_sha != current_sha:
-            if isinstance(repo.get_object(past_sha), objects.Tree):
-                for name in get_differing_files(repo, repo.get_object(past_sha), repo.get_object(current_sha)):
-                    yield os.path.join(current_name, name)
-            else:
-                yield current_name
+    past_files = {}
+    current_files = {}
+    if past is not None:
+        past_files = dict([(name, sha) for mode, name, sha in past.entries()])
+    if current is not None:
+        current_files = dict([(name, sha) for mode, name, sha in current.entries()])
+
+    added = set(current_files) - set(past_files)
+    removed = set(past_files) - set(current_files)
+    changed = [o for o in past_files if o in current_files and past_files[o] != current_files[o]]
+
+    for name in added:
+        sha = current_files[name]
+        yield name
+        if isinstance(repo.get_object(sha), objects.Tree):
+            for item in get_differing_files(repo, None, repo.get_object(sha)):
+                yield os.path.join(name, item)
+
+    for name in removed:
+        sha = past_files[name]
+        yield name
+        if isinstance(repo.get_object(sha), objects.Tree):
+            for item in get_differing_files(repo, repo.get_object(sha), None):
+                yield os.path.join(name, item)
+
+    for name in changed:
+        past_sha = past_files[name]
+        current_sha = current_files[name]
+        if isinstance(repo.get_object(past_sha), objects.Tree):
+            for item in get_differing_files(repo, repo.get_object(past_sha), repo.get_object(current_sha)):
+                yield os.path.join(name, item)
+        else:
+            yield name
+
 
 class Repository(BaseRepository):
     def __init__(self, *args, **kwargs):
@@ -62,7 +70,7 @@ class Repository(BaseRepository):
         return self._repo.get_object(sha)
 
     def _diff(self, commit_id1, commit_id2):
-        return list(get_differing_files(
+        return sorted(get_differing_files(
             self._repo,
             self._get_obj(self._get_obj(commit_id1).tree),
             self._get_obj(self._get_obj(commit_id2).tree),
