@@ -1,9 +1,12 @@
+from datetime import datetime
+
 from dulwich.repo import Repo
 
-from pyvcs.exceptions import CommitDoesNotExist
 from pyvcs.commit import Commit
+from pyvcs.exceptions import CommitDoesNotExist
+from pyvcs.repository import BaseRepository
 
-class Repository(object):
+class Repository(BaseRepository):
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
 
@@ -14,5 +17,6 @@ class Repository(object):
             commit = self._repo.commit(commit_id)
         except Exception, e:
             raise CommitDoesNotExist("%s is not a commit" % commit_id)
-        return Commit(commit.committer, commit.time, commit.message,
-            commit.as_pretty_string)
+        return Commit(commit.committer,
+            datetime.fromtimestamp(commit.commit_time), commit.message,
+            commit.as_pretty_string())
