@@ -87,7 +87,7 @@ class Repository(BaseRepository):
     def get_recent_commits(self, since=None):
         if since is None:
             since = datetime.now() - timedelta(days=5)
-        pending_commits = [self._repo.head()]
+        pending_commits = self._repo.get_refs().values()#[self._repo.head()]
         history = set()
         while pending_commits:
             head = pending_commits.pop(0)
@@ -95,7 +95,7 @@ class Repository(BaseRepository):
                 commit = self._repo.commit(head)
             except KeyError:
                 raise CommitDoesNotExist
-            if commit in history:
+            if commit in history or datetime.fromtimestamp(commit.commit_time) <= since:
                 continue
             history.add(commit)
             pending_commits.extend(commit.parents)
