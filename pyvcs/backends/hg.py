@@ -1,9 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from difflib import Differ
-
 from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
-
+from mercurial.util import matchdate
 from pyvcs.commit import Commit
 from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist
 from pyvcs.repository import BaseRepository
@@ -29,19 +28,23 @@ class Repository(BaseRepository):
         self.repo = hg_repo(ui.ui(), path=path)
         self.path = path
         self.extra = kwargs
+        
+    def _ctx_to_commit(self, ctx):
+        return Commit(ctx.rev(),
+                      ctx.user(),
+                      datetime.fromtimestamp(ctx.date()[0]),
+                      ctx.description(),
+                      ctx.files(),
+                      "\n".join(get_diff(ctx)))
+        
 
     def get_commit_by_id(self, commit_id):
         """
         Returns a commit by it's id (nature of the ID is VCS dependent).
         """
         changeset = self.repo.changectx(commit_id)
-        commit = Commit(changeset.user(),
-                        datetime.fromtimestamp(changeset.date()[0]),
-                        changeset.description(),
-                        changeset.files(),
-                        "\n".join(get_diff(changeset)))
-        return commit
-
+        return self._ctx_to_commit(changeset)
+        
     def get_recent_commits(self, since=None):
         """
         Returns all commits since since.  If since is None returns all commits
