@@ -9,13 +9,17 @@ from pyvcs.repository import BaseRepository
 
 def get_diff(chgset):
     diff = []
-    for i in chgset.files():
-        fctx = chgset.filectx(i)
+    for file in chgset.files():
+        fctx = chgset.filectx(file)
         # FIXME: Fix this to handle multiple parents
-        parent = fctx.parents()[0]
+        try:
+            parent_data = fctx.parents()[0].data()
+        except IndexError:
+            parent_data = ''
+            
         # FIXME: This should return diff + context, not entire files
         differ = Differ()
-        single_diff = list(differ.compare(fctx.data().splitlines(1), parent.data().splitlines(1)))
+        single_diff = list(differ.compare(fctx.data().splitlines(1), parent_data.splitlines(1)))
         diff.append(''.join(single_diff))
     return diff
 
