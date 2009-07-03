@@ -41,6 +41,8 @@ class Repository(BaseRepository):
                       ctx.files(),
                       "\n".join(get_diff(ctx)))
         
+    def _latest_from_parents(self, parent_list):
+        pass
 
     def get_commit_by_id(self, commit_id):
         """
@@ -54,14 +56,21 @@ class Repository(BaseRepository):
         Returns all commits since since.  If since is None returns all commits
         from the last 5 days.
         """
-        raise NotImplementedError
         if since is None:
             since = datetime.now() - timedelta(5)
-        cur_ctx = self.repo.changectx(self.repo.changelog.rev(self.repo.changelog.tip()))
-        changesets = []
 
-        if datetime.fromtimestamp(cur_ctx.date()[0]) <= since:
-            changesets.append(cur_ctx)
+        cur_ctx = self.repo.changectx(self.repo.changelog.rev(self.repo.changelog.tip()))
+
+        changesets = []
+        to_look_at = [cur_ctx]
+        
+        while to_look_at:
+            head = to_look_at.pop(0)
+            to_look_at.extend(head.parents())
+            if datetime.fromtimestamp(head.date()[0]) >= since:
+                changesets.append(head)
+            else:
+                break
             
         return [self._ctx_to_commit(ctx) for ctx in changesets] or None
 
