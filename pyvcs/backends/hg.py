@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from difflib import Differ
+
 from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
 from mercurial.util import matchdate
+
 from pyvcs.commit import Commit
 from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist
 from pyvcs.repository import BaseRepository
@@ -16,7 +18,7 @@ def get_diff(chgset):
             parent_data = fctx.parents()[0].data()
         except IndexError:
             parent_data = ''
-            
+
         # FIXME: This should return diff + context, not entire files
         differ = Differ()
         single_diff = list(differ.compare(fctx.data().splitlines(1), parent_data.splitlines(1)))
@@ -32,7 +34,7 @@ class Repository(BaseRepository):
         self.repo = hg_repo(ui.ui(), path=path)
         self.path = path
         self.extra = kwargs
-        
+
     def _ctx_to_commit(self, ctx):
         return Commit(ctx.rev(),
                       ctx.user(),
@@ -40,7 +42,7 @@ class Repository(BaseRepository):
                       ctx.description(),
                       ctx.files(),
                       "\n".join(get_diff(ctx)))
-        
+
     def _latest_from_parents(self, parent_list):
         pass
 
@@ -50,7 +52,7 @@ class Repository(BaseRepository):
         """
         changeset = self.repo.changectx(commit_id)
         return self._ctx_to_commit(changeset)
-        
+
     def get_recent_commits(self, since=None):
         """
         Returns all commits since since.  If since is None returns all commits
@@ -63,7 +65,7 @@ class Repository(BaseRepository):
 
         changesets = []
         to_look_at = [cur_ctx]
-        
+
         while to_look_at:
             head = to_look_at.pop(0)
             to_look_at.extend(head.parents())
@@ -71,7 +73,7 @@ class Repository(BaseRepository):
                 changesets.append(head)
             else:
                 break
-            
+
         return [self._ctx_to_commit(ctx) for ctx in changesets] or None
 
     def list_directory(self, path, revision=None):
