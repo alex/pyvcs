@@ -55,6 +55,15 @@ class Repository(BaseRepository):
         from the last 5 days.
         """
         raise NotImplementedError
+        if since is None:
+            since = datetime.now() - timedelta(5)
+        cur_ctx = self.repo.changectx(self.repo.changelog.rev(self.repo.changelog.tip()))
+        changesets = []
+
+        if datetime.fromtimestamp(cur_ctx.date()[0]) <= since:
+            changesets.append(cur_ctx)
+            
+        return [self._ctx_to_commit(ctx) for ctx in changesets] or None
 
     def list_directory(self, path, revision=None):
         """
