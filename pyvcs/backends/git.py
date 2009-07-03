@@ -105,13 +105,17 @@ class Repository(BaseRepository):
     def list_directory(self, path, revision=None):
         commit = self._get_commit(revision or self._repo.head())
         tree = self._repo.tree(commit.tree)
-        path = path.split(os.path.sep)
+        path = filter(bool, path.split(os.path.sep))
         while path:
             part = path.pop(0)
+            found = False
             for mode, name, hexsha in self._repo.tree(tree.id).entries():
                 if part == name:
+                    found = True
                     tree = self._repo.tree(hexsha)
                     break
+            if not found:
+                raise FolderDoesNotExist
         files, folders = [], []
         for mode, name, hexsha in tree.entries():
             if isinstance(self._repo.get_object(hexsha), objects.Tree):

@@ -24,6 +24,7 @@ class GitTest(unittest.TestCase):
         files, folders = self.repo.list_directory('tests/', 'c3699190186561d5c216b2a77ecbfc487d42a734')
         self.assertEqual(files, ['runtests.py', 'urls.py'])
         self.assertEqual(folders, ['modeltests', 'regressiontests', 'templates'])
+        self.assertRaises(FolderDoesNotExist, self.repo.list_directory, 'tests/awesometests/')
 
     def test_file_contents(self):
         contents = self.repo.file_contents('django/db/models/fields/related.py',
