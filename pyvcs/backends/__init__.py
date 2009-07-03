@@ -4,12 +4,12 @@ AVAILABLE_BACKENDS = {
     'bzr': 'bzr',
     'git': 'git',
     'hg': 'hg',
-    'svn': 'svn',
+    'svn': 'subversion',
 }
 
 def get_backend(backend):
     if backend in AVAILABLE_BACKENDS:
-        path = 'pyvcs.backends.%s' % backend
+        path = 'pyvcs.backends.%s' % AVAILABLE_BACKENDS[backend]
     else:
         path = backend
     __import__(path)
