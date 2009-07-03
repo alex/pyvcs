@@ -88,18 +88,18 @@ class Repository(BaseRepository):
         if since is None:
             since = datetime.now() - timedelta(days=5)
         pending_commits = self._repo.get_refs().values()#[self._repo.head()]
-        history = set()
+        history = {}
         while pending_commits:
             head = pending_commits.pop(0)
             try:
                 commit = self._repo.commit(head)
             except KeyError:
                 raise CommitDoesNotExist
-            if commit in history or datetime.fromtimestamp(commit.commit_time) <= since:
+            if commit.id in history or datetime.fromtimestamp(commit.commit_time) <= since:
                 continue
-            history.add(commit)
+            history[commit.id] = commit
             pending_commits.extend(commit.parents)
-        commits = filter(lambda o: datetime.fromtimestamp(o.commit_time) >= since, history)
+        commits = filter(lambda o: datetime.fromtimestamp(o.commit_time) >= since, history.values())
         return sorted(map(lambda o: self.get_commit_by_id(o.id), commits), key=attrgetter('time'), reverse=True)
 
     def list_directory(self, path, revision=None):
