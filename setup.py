@@ -5,7 +5,6 @@ setup(
     version = '0.1',
     packages = find_packages('pyvcs'),
     package_dir = {'': 'pyvcs'},
-    install_requires = ['setuptools'],
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
