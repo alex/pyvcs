@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from difflib import Differ
+from difflib import unified_diff
 
 from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
@@ -19,10 +19,8 @@ def get_diff(chgset):
         except IndexError:
             parent_data = ''
 
-        # FIXME: This should return diff + context, not entire files
-        differ = Differ()
-        single_diff = list(differ.compare(fctx.data().splitlines(1), parent_data.splitlines(1)))
-        diff.append(''.join(single_diff))
+        single_diff = '\n'.join([line for line in unified_diff(fctx.data().splitlines(), parent_data.splitlines())])
+        diff.append(single_diff)
     return diff
 
 class Repository(BaseRepository):
@@ -41,7 +39,7 @@ class Repository(BaseRepository):
                       datetime.fromtimestamp(ctx.date()[0]),
                       ctx.description(),
                       ctx.files(),
-                      "\n".join(get_diff(ctx)))
+                      ''.join(get_diff(ctx)))
 
     def _latest_from_parents(self, parent_list):
         pass
