@@ -8,20 +8,7 @@ from mercurial.util import matchdate
 from pyvcs.commit import Commit
 from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist
 from pyvcs.repository import BaseRepository
-
-def get_diff(chgset):
-    diff = []
-    for file in chgset.files():
-        fctx = chgset.filectx(file)
-        # FIXME: Fix this to handle multiple parents
-        try:
-            parent_data = fctx.parents()[0].data()
-        except IndexError:
-            parent_data = ''
-
-        single_diff = '\n'.join([line for line in unified_diff(fctx.data().splitlines(), parent_data.splitlines())])
-        diff.append(single_diff)
-    return diff
+from pyvcs.utils import generate_unified_diff
 
 class Repository(BaseRepository):
     def __init__(self, path, **kwargs):
@@ -34,12 +21,14 @@ class Repository(BaseRepository):
         self.extra = kwargs
 
     def _ctx_to_commit(self, ctx):
+        diff = generate_unified_diff(self, ctx.files(), ctx.parents()[0].rev(), ctx.rev())
+        
         return Commit(ctx.rev(),
                       ctx.user(),
                       datetime.fromtimestamp(ctx.date()[0]),
                       ctx.description(),
                       ctx.files(),
-                      ''.join(get_diff(ctx)))
+                      diff)
 
     def _latest_from_parents(self, parent_list):
         pass
