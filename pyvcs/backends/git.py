@@ -100,7 +100,8 @@ class Repository(BaseRepository):
             history[commit.id] = commit
             pending_commits.extend(commit.parents)
         commits = filter(lambda o: datetime.fromtimestamp(o.commit_time) >= since, history.values())
-        return sorted(map(lambda o: self.get_commit_by_id(o.id), commits), key=attrgetter('time'), reverse=True)
+        commits = map(lambda o: self.get_commit_by_id(o.id), commits)
+        return sorted(commits, key=attrgetter('time'), reverse=True)
 
     def list_directory(self, path, revision=None):
         commit = self._get_commit(revision or self._repo.head())
