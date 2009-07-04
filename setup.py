@@ -6,11 +6,11 @@ setup(
     packages = find_packages('pyvcs'),
     package_dir = {'': 'pyvcs'},
     install_requires = ['setuptools'],
-    classifiers=[
+    classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Topic :: Software Development :: Version Control'
-        ],
+    ],
 )
