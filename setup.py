@@ -3,6 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name = 'pyvcs',
     version = '0.1',
+    author = 'Alex Gaynor, Justin Lilly',
+    author_email = 'alex.gaynor@gmail.com',
     description = "A lightweight abstraction layer over multiple VCSs.",
     url = 'http://github.com/alex/pyvcs/',
     packages = find_packages('pyvcs'),
