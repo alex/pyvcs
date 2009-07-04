@@ -17,6 +17,9 @@ class HGTest(unittest.TestCase):
         self.assertEqual(commit.time, datetime(2005, 5, 10, 4, 34, 57))
         self.assert_(commit.message.startswith('Fix recursion depth'))
         
+    def test_recent_commits(self):
+        results = self.repo.get_recent_commits()
+        
     def test_list_directory(self):
         files, folders = self.repo.list_directory('contrib/', 450)
         self.assertEqual(len(files), 3)
