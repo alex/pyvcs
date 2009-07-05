@@ -7,7 +7,7 @@ setup(
     author_email = 'alex.gaynor@gmail.com',
     description = "A lightweight abstraction layer over multiple VCSs.",
     url = 'http://github.com/alex/pyvcs/',
-    packages = find_packages('pyvcs'),
+    packages = find_packages(),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
