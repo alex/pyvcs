@@ -18,4 +18,4 @@ Requirements::
 Backend Specific Requirements::
 
     * Git
-        * Dulwich
+        * Dulwich (http://github.com/jelmer/dulwich/)
