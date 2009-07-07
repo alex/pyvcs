@@ -22,7 +22,7 @@ class Repository(BaseRepository):
 
     def _ctx_to_commit(self, ctx):
         diff = generate_unified_diff(self, ctx.files(), ctx.parents()[0].rev(), ctx.rev())
-        
+
         return Commit(ctx.rev(),
                       ctx.user(),
                       datetime.fromtimestamp(ctx.date()[0]),
