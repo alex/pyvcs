@@ -98,4 +98,11 @@ class Repository(BaseRepository):
             fctx = chgctx.filectx(path)
         except KeyError:
             raise FileDoesNotExist
-        return fctx.data()
+        try:
+            return fctx.data()
+        except Abort:
+            # If the path contains any banned components (under top-level .hg,
+            # starts at the root of a windows drive, contains "..", traverses
+            # a symlink (e.g. a/symlink_here/b), inside a nested repository),
+            # then this exception will be raised.
+            raise FileDoesNotExist
