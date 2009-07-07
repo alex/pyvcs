@@ -10,6 +10,7 @@ Currently supported VCS backends are::
 
     * Mercurial
     * Git
+    * Subversion
 
 Requirements::
 
@@ -19,3 +20,5 @@ Backend Specific Requirements::
 
     * Git
         * Dulwich (http://github.com/jelmer/dulwich/)
+    * Subversion
+        * Pysvn (http://pysvn.tigris.org/)
