@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from time import mktime
 import os
 
 import pysvn
@@ -27,7 +28,7 @@ class Repository(BaseRepository):
         diff = self.client.diff('/tmp/pysvndiff-', url_or_path=self.path,
                                 revision1 = log['revision'])
         
-        return Commit(commit_id, log['author'],
+        return Commit(log['revision'], log['author'],
                       datetime.fromtimestamp(log['date']), log['message'],
                       commit_files, diff)
     
@@ -53,7 +54,11 @@ class Repository(BaseRepository):
             since = datetime.now() - timedelta(days=5)
         
         revhead = pysvn.Revision(pysvn.opt_revision_kind.head)
-        rev = pysvn.Revision(pysvn.opt_revision_kind.date, since)
+        
+        # Convert from datetime to float (seconds since unix epoch)
+        utime = mktime(since.timetuple())
+        
+        rev = pysvn.Revision(pysvn.opt_revision_kind.date, utime)
         
         log_list = self.client.log(self.path, revision_start=revhead, 
                                    revision_end=rev, discover_changed_paths=True)
