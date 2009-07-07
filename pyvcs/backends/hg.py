@@ -6,7 +6,7 @@ from mercurial.localrepo import localrepository as hg_repo
 from mercurial.util import matchdate, Abort
 
 from pyvcs.commit import Commit
-from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist
+from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist, FolderDoesNotExist
 from pyvcs.repository import BaseRepository
 from pyvcs.utils import generate_unified_diff
 
@@ -71,15 +71,19 @@ class Repository(BaseRepository):
         chgctx = self.repo.changectx(revision)
         file_list = []
         folder_list = []
+        found_path = False #Make sure we find path somewhere in the manifest.
         for file, node in chgctx.manifest().items():
             if not file.startswith(path):
                 continue
+            found_path = True #If we find anything in the manifest under this path, then this folder must exist.
             folder_name = '/'.join(file.lstrip(path).split('/')[:-1])
             if folder_name != '':
                 if folder_name not in folder_list:
                     folder_list.append(folder_name)
             if '/' not in file.lstrip(path):
                 file_list.append(file)
+        if not found_path: #If we never found the path within the manifest, it does not exist.
+            raise FolderDoesNotExist
         return file_list, folder_list
 
     def file_contents(self, path, revision=None):
@@ -87,6 +91,8 @@ class Repository(BaseRepository):
         Returns the contents of a file as a string at a given revision, or
         HEAD if revision is None.
         """
+        if revision is None:
+            revision = 'tip'
         chgctx = self.repo.changectx(revision)
         try:
             fctx = chgctx.filectx(path)
