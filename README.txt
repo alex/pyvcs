@@ -11,6 +11,7 @@ Currently supported VCS backends are::
     * Mercurial
     * Git
     * Subversion
+    * Bazaar
 
 Requirements::
 
