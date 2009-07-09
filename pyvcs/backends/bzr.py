@@ -90,7 +90,7 @@ class Repository(BaseRepository):
         
         plen = len(path)
         if plen != 0:
-        	plen += 1
+            plen += 1
         files = [f[0][plen:] for f in filter(lambda x: x[2] == 'file', entries[1])]
         folders = [f[0][plen:] for f in filter(lambda x: x[2] == 'directory', entries[1])]
         
@@ -105,7 +105,7 @@ class Repository(BaseRepository):
             if tree.kind(file_id) != 'file':
                 # Django VCS expects file_contents to raise an exception on directories, while bzrlib returns an empty string
                 # so check explicitly, and raise an exception
-            	raise FileDoesNotExist
+                raise FileDoesNotExist
             out = tree.get_file(file_id).read()
             self._branch.unlock()
         except:
