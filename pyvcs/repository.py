@@ -1,5 +1,3 @@
-
-
 class BaseRepository(object):
     def __init__(self, path, **kwargs):
         """
@@ -11,7 +9,7 @@ class BaseRepository(object):
 
     def get_commit_by_id(self, commit_id):
         """
-        Returns a commit by it's id (nature of the ID is VCS dependent).
+        Returns a commit by its id (nature of the ID is VCS dependent).
         """
         raise NotImplementedError
 
