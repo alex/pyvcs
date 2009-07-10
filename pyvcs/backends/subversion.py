@@ -24,10 +24,10 @@ class Repository(BaseRepository):
         self._repo = pysvn.Client(self.path.rstrip(os.path.sep))
 
     def _log_to_commit(self, log):
-        # TODO: Trim path info, svn gives full path from url repository,
-        # we should return the path on the local repo since that's what we're
-        # working with
-        commit_files = [cp_dict['path'] for cp_dict in log['changed_paths']]
+        info = self._repo.info(self.path)
+        base, url = info['repos'], info['url']
+        at = url[len(base):]
+        commit_files = [cp_dict['path'][len(at)+1:] for cp_dict in log['changed_paths']]
 
         # TODO: Generate portable tmp paths for Client API to do its diffs
         # TODO: this fails if the commit preceeding this one isn't one the same
