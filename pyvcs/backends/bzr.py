@@ -99,7 +99,7 @@ class Repository(BaseRepository):
         for item in entries[1]:
             if item[2] == 'file':
                 files.append(item[0][plen:])
-            elif item[2] == 'folder':
+            elif item[2] == 'directory':
                 folders.append(item[0][plen:])
 
         return files, folders
