@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from tempfile import NamedTemporaryFile
 from time import mktime
 import os
 
@@ -9,14 +10,6 @@ from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist, FolderDoesNot
 from pyvcs.repository import BaseRepository
 from pyvcs.utils import generate_unified_diff
 
-# TODO: Fix path handling, with svn you have 2 paths, the local
-# one (working local copy) and the remote (svn server).
-# Local: /home/user/myrepo
-# Remote: svn.myserver.com/svn/myrepo/trunk
-# The problem is that remote path will be /myrepo/trunk,
-# this brings problems when quering svn for file information,
-# lists and logs. Assuming you are using a local working copy
-# everything should more or less work fine.
 class Repository(BaseRepository):
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
@@ -29,10 +22,9 @@ class Repository(BaseRepository):
         at = url[len(base):]
         commit_files = [cp_dict['path'][len(at)+1:] for cp_dict in log['changed_paths']]
 
-        # TODO: Generate portable tmp paths for Client API to do its diffs
         # TODO: this fails if the commit preceeding this one isn't one the same
         # branch
-        diff = self._repo.diff('/tmp/pysvndiff-', url_or_path=self.path,
+        diff = self._repo.diff(NamedTemporaryFile().name, url_or_path=self.path,
             revision1=pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number-1),
             revision2=log['revision'],
         )
