@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from difflib import unified_diff
+import os
 
 from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
@@ -68,33 +69,31 @@ class Repository(BaseRepository):
         Returns a list of files in a directory (list of strings) at a given
         revision, or HEAD if revision is None.
         """
-        chgctx = self.repo.changectx(revision)
+        chgctx = self.repo.changectx(revision or 'tip')
         file_list = []
-        folder_list = []
-        found_path = False #Make sure we find path somewhere in the manifest.
+        folder_list = set()
+        found_path = False
         for file, node in chgctx.manifest().items():
             if not file.startswith(path):
                 continue
-            found_path = True #If we find anything in the manifest under this path, then this folder must exist.
-            folder_name = '/'.join(file.lstrip(path).split('/')[:-1])
-            if folder_name != '':
-                if folder_name not in folder_list:
-                    folder_list.append(folder_name)
-            if '/' not in file.lstrip(path):
+            found_path = True
+            file = file[len(path):]
+            if file.count(os.path.sep) >= 1:
+                folder_list.add(file[:file.find(os.path.sep)])
+            else:
                 file_list.append(file)
-        if not found_path: #If we never found the path within the manifest, it does not exist.
+        if not found_path:
+            # If we never found the path within the manifest, it does not exist.
             raise FolderDoesNotExist
-        return file_list, folder_list
+        return file_list, sorted(list(folder_list))
 
     def file_contents(self, path, revision=None):
         """
         Returns the contents of a file as a string at a given revision, or
         HEAD if revision is None.
         """
-        if revision is None:
-            revision = 'tip'
-        chgctx = self.repo.changectx(revision)
+        chgctx = self.repo.changectx(revision or 'tip')
         try:
-            fctx = chgctx.filectx(path)
+            return chgctx.filectx(path).data()
         except KeyError:
             raise FileDoesNotExist
