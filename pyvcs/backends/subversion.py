@@ -29,11 +29,25 @@ class Repository(BaseRepository):
         # working with
         commit_files = [cp_dict['path'] for cp_dict in log['changed_paths']]
 
+        # Check 5 revisions backwards to find a suitable revision to do a diff against,
+        # which is the previous revision in the same path.
+        diff_rev_end = pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number - 6)
+        diff_rev_start = pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number - 1)
+        
+        log_list = self._repo.log(self.path, revision_start=diff_rev_start,
+            revision_end=diff_rev_end, discover_changed_paths=True)
+        
+        try:
+            oldrev_log = log_list.pop(0)
+        except IndexError:
+            # TODO: decide whatever to do if a suitable revision is not found within the
+            # last 5 revisions, we could probably check 10 or 15 before, but could be
+            # expensive.
+            raise CommitDoesNotExist
+                    
         # TODO: Generate portable tmp paths for Client API to do its diffs
-        # TODO: this fails if the commit preceeding this one isn't one the same
-        # branch
         diff = self._repo.diff('/tmp/pysvndiff-', url_or_path=self.path,
-            revision1=pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number-1),
+            revision1=oldrev_log['revision'],
             revision2=log['revision'],
         )
 
