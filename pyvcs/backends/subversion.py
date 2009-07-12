@@ -22,21 +22,27 @@ class Repository(BaseRepository):
         at = url[len(base):]
         commit_files = [cp_dict['path'][len(at)+1:] for cp_dict in log['changed_paths']]
 
-        # Check 5 revisions backwards to find a suitable revision to do a diff against,
-        # which is the previous revision in the same path.
-        diff_rev_end = pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number - 6)
-        diff_rev_start = pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number - 1)
-
-        log_list = self._repo.log(self.path, revision_start=diff_rev_start,
-            revision_end=diff_rev_end, discover_changed_paths=True)
-
-        try:
-            oldrev_log = log_list.pop(0)
-        except IndexError:
-            # TODO: decide whatever to do if a suitable revision is not found within the
-            # last 5 revisions, we could probably check 10 or 15 before, but could be
-            # expensive.
-            raise CommitDoesNotExist
+        # Here we go back through history, 5 commits at a time, searching for
+        # the first point at which there is a change along our path.
+        oldrev_log = None
+        i = 1
+        # the start of our search is always at the previous commit
+        diff_rev_start = pysvn.Revision(pysvn.opt_revision_kind.number,
+            log['revision'].number - 1)
+        while oldrev_log is None:
+            i += 5
+            diff_rev_end = pysvn.Revision(pysvn.opt_revision_kind.number,
+                log['revision'].number - i)
+            log_list = self._repo.log(self.path, revision_start=diff_rev_start,
+                revision_end=diff_rev_end, discover_changed_paths=True)
+            try:
+                oldrev_log = log_list.pop(0)
+            except IndexError:
+                # If we've gone back through the entirety of history and still
+                # not found anything, bail out, this commit doesn't exist along
+                # our path (or perhaps at all)
+                if i >= log['revision'].number:
+                    raise CommitDoesNotExist
 
         diff = self._repo.diff(NamedTemporaryFile().name, url_or_path=self.path,
             revision1=oldrev_log['revision'],
@@ -50,11 +56,14 @@ class Repository(BaseRepository):
     def get_commit_by_id(self, commit_id):
         rev = pysvn.Revision(pysvn.opt_revision_kind.number, commit_id)
 
-        log_list = self._repo.log(self.path, revision_start=rev,
-            revision_end=rev, discover_changed_paths=True)
+        try:
+            log_list = self._repo.log(self.path, revision_start=rev,
+                revision_end=rev, discover_changed_paths=True)
+        except pysvn.ClientError:
+            raise CommitDoesNotExist
 
-        # If log list is empty most probably the commit does not
-        # exists for a given path or branch.
+        # If log list is empty most probably the commit does not exists for a
+        # given path or branch.
         try:
             log = log_list.pop(0)
         except IndexError:
