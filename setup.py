@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'pyvcs',
-    version = '0.1',
+    version = '0.2.0',
     author = 'Alex Gaynor, Justin Lilly',
     author_email = 'alex.gaynor@gmail.com',
     description = "A lightweight abstraction layer over multiple VCSs.",
