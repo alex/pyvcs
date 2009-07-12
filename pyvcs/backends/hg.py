@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
 from difflib import unified_diff
+import os
 
 from mercurial import ui
 from mercurial.localrepo import localrepository as hg_repo
 from mercurial.util import matchdate, Abort
 
 from pyvcs.commit import Commit
-from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist
+from pyvcs.exceptions import CommitDoesNotExist, FileDoesNotExist, FolderDoesNotExist
 from pyvcs.repository import BaseRepository
 from pyvcs.utils import generate_unified_diff
 
@@ -68,35 +69,31 @@ class Repository(BaseRepository):
         Returns a list of files in a directory (list of strings) at a given
         revision, or HEAD if revision is None.
         """
-        chgctx = self.repo.changectx(revision)
+        chgctx = self.repo.changectx(revision or 'tip')
         file_list = []
-        folder_list = []
+        folder_list = set()
+        found_path = False
         for file, node in chgctx.manifest().items():
             if not file.startswith(path):
                 continue
-            folder_name = '/'.join(file.lstrip(path).split('/')[:-1])
-            if folder_name != '':
-                if folder_name not in folder_list:
-                    folder_list.append(folder_name)
-            if '/' not in file.lstrip(path):
+            found_path = True
+            file = file[len(path):]
+            if file.count(os.path.sep) >= 1:
+                folder_list.add(file[:file.find(os.path.sep)])
+            else:
                 file_list.append(file)
-        return file_list, folder_list
+        if not found_path:
+            # If we never found the path within the manifest, it does not exist.
+            raise FolderDoesNotExist
+        return file_list, sorted(list(folder_list))
 
     def file_contents(self, path, revision=None):
         """
         Returns the contents of a file as a string at a given revision, or
         HEAD if revision is None.
         """
-        chgctx = self.repo.changectx(revision)
+        chgctx = self.repo.changectx(revision or 'tip')
         try:
-            fctx = chgctx.filectx(path)
+            return chgctx.filectx(path).data()
         except KeyError:
-            raise FileDoesNotExist
-        try:
-            return fctx.data()
-        except Abort:
-            # If the path contains any banned components (under top-level .hg,
-            # starts at the root of a windows drive, contains "..", traverses
-            # a symlink (e.g. a/symlink_here/b), inside a nested repository),
-            # then this exception will be raised.
             raise FileDoesNotExist
