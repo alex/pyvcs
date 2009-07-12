@@ -46,7 +46,13 @@ class Repository(BaseRepository):
 
         log_list = self._repo.log(self.path, revision_start=rev,
             revision_end=rev, discover_changed_paths=True)
-        log = log_list.pop(0)
+        
+        # If log list is empty most probably the commit does not
+        # exists for a given path or branch.
+        try:
+            log = log_list.pop(0)
+        except IndexError:
+            raise CommitDoesNotExist
 
         return self._log_to_commit(log)
 
