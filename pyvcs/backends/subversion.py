@@ -26,10 +26,10 @@ class Repository(BaseRepository):
         # which is the previous revision in the same path.
         diff_rev_end = pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number - 6)
         diff_rev_start = pysvn.Revision(pysvn.opt_revision_kind.number, log['revision'].number - 1)
-        
+
         log_list = self._repo.log(self.path, revision_start=diff_rev_start,
             revision_end=diff_rev_end, discover_changed_paths=True)
-        
+
         try:
             oldrev_log = log_list.pop(0)
         except IndexError:
@@ -37,7 +37,7 @@ class Repository(BaseRepository):
             # last 5 revisions, we could probably check 10 or 15 before, but could be
             # expensive.
             raise CommitDoesNotExist
-                    
+
         diff = self._repo.diff(NamedTemporaryFile().name, url_or_path=self.path,
             revision1=oldrev_log['revision'],
             revision2=log['revision'],
@@ -52,7 +52,7 @@ class Repository(BaseRepository):
 
         log_list = self._repo.log(self.path, revision_start=rev,
             revision_end=rev, discover_changed_paths=True)
-        
+
         # If log list is empty most probably the commit does not
         # exists for a given path or branch.
         try:
