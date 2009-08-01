@@ -82,7 +82,7 @@ class Repository(BaseRepository):
         files = self._diff_files(commit.id, commit.parents[0])
         return Commit(commit.id, commit.committer,
             datetime.fromtimestamp(commit.commit_time), commit.message, files,
-            generate_unified_diff(self, files, commit.parents[0], commit.id))
+            lambda: generate_unified_diff(self, files, commit.parents[0], commit.id))
 
     def get_recent_commits(self, since=None):
         if since is None:
