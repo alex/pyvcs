@@ -62,7 +62,7 @@ class Repository(BaseRepository):
             else:
                 break
 
-        return [self._ctx_to_commit(ctx) for ctx in changesets] or None
+        return [self._ctx_to_commit(ctx) for ctx in changesets]
 
     def list_directory(self, path, revision=None):
         """
