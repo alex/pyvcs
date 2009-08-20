@@ -44,12 +44,12 @@ class Repository(BaseRepository):
     def get_recent_commits(self, since=None):
         """
         Returns all commits since since.  If since is None returns all commits
-        from the last 5 days.
+        from the last 5 days of commits.
         """
-        if since is None:
-            since = datetime.now() - timedelta(5)
-
         cur_ctx = self.repo.changectx(self.repo.changelog.rev(self.repo.changelog.tip()))
+
+        if since is None:
+            since = datetime.fromtimestamp(cur_ctx.date()[0]) - timedelta(5)
 
         changesets = []
         to_look_at = [cur_ctx]

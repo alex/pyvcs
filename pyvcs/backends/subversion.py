@@ -76,10 +76,11 @@ class Repository(BaseRepository):
 
 
     def get_recent_commits(self, since=None):
-        if since is None:
-            since = datetime.now() - timedelta(days=5)
-
         revhead = pysvn.Revision(pysvn.opt_revision_kind.head)
+        log = self._repo.log(self.path, revision_start=revhead, revision_end=revhead)
+
+        if since is None:
+            since = datetime.fromtimestamp(log['date']) - timedelta(days=5)
 
         # Convert from datetime to float (seconds since unix epoch)
         utime = mktime(since.timetuple())

@@ -86,7 +86,7 @@ class Repository(BaseRepository):
 
     def get_recent_commits(self, since=None):
         if since is None:
-            since = datetime.now() - timedelta(days=5)
+            since = datetime.fromtimestamp(self._repo.commit(self._repo.head()).commit_time) - timedelta(days=5)
         pending_commits = self._repo.get_refs().values()#[self._repo.head()]
         history = {}
         while pending_commits:

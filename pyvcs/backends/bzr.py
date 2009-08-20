@@ -65,14 +65,16 @@ class Repository(BaseRepository):
             return self._branch.repository.revision_tree(self._branch.last_revision())
 
     def get_recent_commits(self, since=None):
+        hist = self._branch.revision_history()
+        hist.reverse()
+        head = hist[0]
+
         if since is None:
-            since = datetime.now() - timedelta(days=5)
+            since = datetime.fromtimestamp(head.timestamp) - timedelta(days=5)
 
         since_ts = mktime(since.timetuple())
 
         commits = []
-        hist = self._branch.revision_history()
-        hist.reverse()
         for rev_id in hist:
             rev = self._branch.repository.get_revision(rev_id)
             if rev.timestamp < since_ts:
