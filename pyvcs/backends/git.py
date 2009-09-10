@@ -92,9 +92,11 @@ class Repository(BaseRepository):
         while pending_commits:
             head = pending_commits.pop(0)
             try:
-                commit = self._repo.commit(head)
+                commit = self._get_obj(head)
             except KeyError:
                 raise CommitDoesNotExist
+            if not hasattr(commit, 'commit_time'):
+                continue
             if commit.id in history or datetime.fromtimestamp(commit.commit_time) <= since:
                 continue
             history[commit.id] = commit
