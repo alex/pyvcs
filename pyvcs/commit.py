@@ -1,7 +1,7 @@
 class Commit(object):
     def __init__(self, commit_id, author, time, message, files, diff):
         """
-        commit_id should be a string, author a string, time a datetime object,
+        comimt_id should be a string, author a string, time a datetime object,
         message a string, files a list of filenames (strings), and diff a
         string
         """
