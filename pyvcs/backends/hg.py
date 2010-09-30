@@ -69,7 +69,10 @@ class Repository(BaseRepository):
         Returns a list of files in a directory (list of strings) at a given
         revision, or HEAD if revision is None.
         """
-        chgctx = self.repo.changectx(revision or 'tip')
+        if revision is None:
+            chgctx = self.repo.changectx('tip')
+        else:
+            chgctx = self.repo.changectx(revision)
         file_list = []
         folder_list = set()
         found_path = False
@@ -92,7 +95,10 @@ class Repository(BaseRepository):
         Returns the contents of a file as a string at a given revision, or
         HEAD if revision is None.
         """
-        chgctx = self.repo.changectx(revision or 'tip')
+        if revision is None:
+            chgctx = self.repo.changectx('tip')
+        else:
+            chgctx = self.repo.changectx(revision)
         try:
             return chgctx.filectx(path).data()
         except KeyError:
