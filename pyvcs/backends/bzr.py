@@ -26,12 +26,16 @@ class Repository(BaseRepository):
     def _rev_to_commit(self, rev):
         # TODO: this doesn't yet handle the case of multiple parent revisions
         current = self._branch.repository.revision_tree(rev.revision_id)
-        prev = self._branch.repository.revision_tree(rev.parent_ids[0])
+        if len(rev.parent_ids):
+            prev = self._branch.repository.revision_tree(rev.parent_ids[0])
+        else:
+            prev = self._branch.repository.revision_tree('null:')
 
         delta = current.changes_from(prev)
         files = [f[0] for f in delta.added + delta.removed + delta.renamed + delta.kind_changed + delta.modified]
 
         diff_file = StringIO.StringIO()
+
         diff_tree = diff.DiffTree(prev, current, diff_file)
 
         self._branch.lock_read()
@@ -85,9 +89,7 @@ class Repository(BaseRepository):
 
     def list_directory(self, path, revision=None):
         path = path.rstrip(os.path.sep)
-
         tree = self._get_tree(revision)
-
         dir_iter = tree.walkdirs(path)
         try:
             entries = dir_iter.next()
