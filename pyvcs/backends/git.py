@@ -72,6 +72,10 @@ class Repository(BaseRepository):
         return self._repo.get_object(sha)
 
     def _diff_files(self, commit_id1, commit_id2):
+        if commit_id1 == 'NULL':
+            commit_id1 = None
+        if commit_id2 == 'NULL':
+            commit_id2 = None
         tree1 = self._get_obj(self._get_obj(commit_id1).tree) if commit_id1 else None
         tree2 = self._get_obj(self._get_obj(commit_id2).tree) if commit_id2 else None
         return sorted(get_differing_files(
@@ -82,7 +86,7 @@ class Repository(BaseRepository):
 
     def get_commit_by_id(self, commit_id):
         commit = self._get_commit(commit_id)
-        parent = commit.parents[0] if len(commit.parents) else None
+        parent = commit.parents[0] if len(commit.parents) else 'NULL'
         files = self._diff_files(commit.id, parent)
         return Commit(commit.id, commit.committer,
             datetime.fromtimestamp(commit.commit_time), commit.message, files,
@@ -99,7 +103,8 @@ class Repository(BaseRepository):
                 commit = self._repo[head]
             except KeyError:
                 raise CommitDoesNotExist
-            if not isinstance(commit, objects.Commit) or commit.id in history or datetime.fromtimestamp(commit.commit_time) <= since:
+            if not isinstance(commit, objects.Commit) or commit.id in history or\
+               datetime.fromtimestamp(commit.commit_time) <= since:
                 continue
             history[commit.id] = commit
             pending_commits.extend(commit.parents)
@@ -108,7 +113,12 @@ class Repository(BaseRepository):
         return sorted(commits, key=attrgetter('time'), reverse=True)
 
     def list_directory(self, path, revision=None):
-        commit = self._get_commit(revision or self._repo.head())
+        if revision is None:
+            commit = self._get_commit(self._repo.head())
+        elif revision is 'NULL':
+            return ([],[])
+        else:
+            commit = self._get_commit(revision)
         tree = self._repo[commit.tree]
         path = filter(bool, path.split(os.path.sep))
         while path:
@@ -130,7 +140,12 @@ class Repository(BaseRepository):
         return files, folders
 
     def file_contents(self, path, revision=None):
-        commit = self._get_commit(revision or self._repo.head())
+        if revision is None:
+            commit = self._get_commit(self._repo.head())
+        elif revision is 'NULL':
+            return ''
+        else:
+            commit = self._get_commit(revision)
         tree = self._repo[commit.tree]
         path = path.split(os.path.sep)
         path, filename = path[:-1], path[-1]
